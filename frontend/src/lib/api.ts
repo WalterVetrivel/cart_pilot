@@ -140,7 +140,7 @@ export interface StorePlan {
   lines: { item_id: string; item_name: string; product_id: string; name: string; qty: number; line_price: number }[]
   subtotal: number
   delivery_fee: number
-  voucher: { code: string | null; discount: number } | null
+  voucher: { code: string | null; discount: number; voucher_id?: string | null } | null
   total: number
   eta: string
   eta_minutes: number
@@ -165,3 +165,58 @@ export const optimiseList = (listId: string, weights: Weights, extraDeliveryPena
     method: 'POST',
     body: JSON.stringify({ list_id: listId, weights, extra_delivery_penalty: extraDeliveryPenalty }),
   })
+
+// --- Vouchers (SPEC §6.2, screen 5) -------------------------------------------
+export interface Voucher {
+  id: string
+  email_id: string
+  store_name_raw: string
+  store_id: string | null
+  code: string | null
+  discount_type: 'percent' | 'flat'
+  value: number
+  max_discount: number | null
+  min_spend: number | null
+  expiry: string | null
+  applies_to_category: string | null
+  confidence: number
+  source: 'gmail' | 'demo'
+  status: 'active' | 'used'
+}
+
+export interface VoucherScanResult {
+  source: 'gmail' | 'demo'
+  emails_scanned: number
+  extracted_by: 'gemini' | 'seed'
+  vouchers: Voucher[]
+  ignored: { store_name_raw: string; code: string | null; reason: string }[]
+}
+
+export const getVouchers = () => api<{ vouchers: Voucher[] }>('/vouchers')
+
+export const loadDemoVouchers = () => api<VoucherScanResult>('/vouchers/demo', { method: 'POST' })
+
+/** Sends the short-lived Gmail token once; it is not kept anywhere in the app. */
+export const scanGmail = (gmailAccessToken: string) =>
+  api<VoucherScanResult>('/vouchers/scan', {
+    method: 'POST',
+    body: JSON.stringify({ gmail_access_token: gmailAccessToken }),
+  })
+
+// --- Orders (SPEC §8.4, screens 7-8) -----------------------------------------
+export interface Order extends Omit<StorePlan, 'eta_minutes'> {
+  order_id: string
+  plan_id: string
+  list_id: string | null
+  payment_id: string
+  status: 'placed'
+  created_at: string
+}
+
+export const placeOrder = (planId: string, displayedTotal: number) =>
+  api<{ orders: Order[]; grand_total: number }>('/orders', {
+    method: 'POST',
+    body: JSON.stringify({ plan_id: planId, approved: true, displayed_total: displayedTotal }),
+  })
+
+export const getOrders = () => api<{ orders: Order[]; grand_total: number }>('/orders')

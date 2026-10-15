@@ -244,6 +244,7 @@ function Workspace({ listId }: { listId?: string }) {
             planning={planning}
             planError={planError}
             onFindDeals={findDeals}
+            onVouchersChanged={() => setPlansStale(true)}
             weights={weights}
             onWeights={changeWeights}
             penalty={penalty}

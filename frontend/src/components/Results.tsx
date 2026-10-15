@@ -1,7 +1,10 @@
+import { useState } from 'react'
 import { formatINR, type CartPlan, type ListResponse, type RankedItem, type ShoppingItem, type Weights } from '../lib/api'
 import { storeInfo } from '../lib/stores'
 import { DealControls } from './DealControls'
+import { ApproveDialog } from './ApproveDialog'
 import { PlanCards } from './PlanCards'
+import { VouchersPanel } from './VouchersPanel'
 
 interface Props {
   data: ListResponse
@@ -12,6 +15,7 @@ interface Props {
   planning: boolean
   planError: string | null
   onFindDeals: () => void
+  onVouchersChanged: () => void
   weights: Weights
   onWeights: (w: Weights) => void
   penalty: number
@@ -25,7 +29,8 @@ const TOP_N = 3
 
 export function Results(props: Props) {
   const { data, ranked, stale, plans, plansStale, planning, planError, onFindDeals, onEdit, onRemove } = props
-  const { weights, onWeights, penalty, onPenalty } = props
+  const { weights, onWeights, penalty, onPenalty, onVouchersChanged } = props
+  const [choosing, setChoosing] = useState<CartPlan | null>(null)
   const byItem = new Map(ranked?.map((r) => [r.item_id, r.candidates]) ?? [])
   const missing = data.items.filter((i) => !(data.matches[i.id!] ?? []).length)
   const found = data.items.filter((i) => (data.matches[i.id!] ?? []).length)
@@ -60,6 +65,8 @@ export function Results(props: Props) {
           <p className="mt-2 text-xs text-amber-800">Try a more common name, for example “wheat flour” instead of “chakki atta”.</p>
         </section>
       )}
+
+      <VouchersPanel onChanged={onVouchersChanged} />
 
       {/* Cart plan */}
       <section className="rounded-xl border border-stone-200 bg-white p-4">
@@ -100,10 +107,21 @@ export function Results(props: Props) {
         {planError && <p className="mt-3 rounded-lg bg-red-50 p-3 text-sm text-red-700">{planError}</p>}
         {plans && (
           <div className={`mt-4 ${plansStale ? 'opacity-50' : ''}`}>
-            <PlanCards plans={plans} />
+            <PlanCards plans={plans} onChoose={plansStale || stale ? undefined : setChoosing} />
           </div>
         )}
       </section>
+
+      {choosing && (
+        <ApproveDialog
+          plan={choosing}
+          onClose={() => setChoosing(null)}
+          onRefreshPlan={() => {
+            setChoosing(null)
+            onFindDeals()
+          }}
+        />
+      )}
 
       {/* Per-item offers */}
       <div className="mt-6 flex items-baseline justify-between gap-2">
