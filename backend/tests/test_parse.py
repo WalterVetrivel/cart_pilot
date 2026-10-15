@@ -113,3 +113,19 @@ def test_get_and_update_list(dev_client):
 
 def test_missing_list_is_404(dev_client):
     assert dev_client.get("/api/lists/nope").status_code == 404
+
+
+def test_parse_appends_to_existing_list(dev_client, fake_parser):
+    first = dev_client.post("/api/parse", data={"text": "x"}).json()
+    res = dev_client.post("/api/parse", data={"text": "y", "list_id": first["list_id"]})
+    assert res.status_code == 200, res.text
+    body = res.json()
+    assert body["list_id"] == first["list_id"]
+    assert len(body["items"]) == 6
+    assert body["items"][:3] == first["items"]
+    assert len({i["id"] for i in body["items"]}) == 6
+    assert len(dev_client.get(f"/api/lists/{first['list_id']}").json()["items"]) == 6
+
+
+def test_parse_append_to_missing_list_is_404(dev_client):
+    assert dev_client.post("/api/parse", data={"text": "y", "list_id": "nope"}).status_code == 404

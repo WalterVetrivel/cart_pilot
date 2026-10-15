@@ -85,7 +85,14 @@ async def parse_list(
     parser: Annotated[ListParser, Depends(get_list_parser)],
     text: Annotated[str | None, Form()] = None,
     file: Annotated[UploadFile | None, File()] = None,
+    list_id: Annotated[str | None, Form()] = None,
 ) -> ListResponse:
+    """Reads a list. With `list_id`, the new items are appended to that list."""
+    existing = None
+    if list_id:
+        existing = repo.get_list(user.uid, list_id)
+        if existing is None:
+            raise ApiError(404, "list_not_found", "That list doesn't exist.")
     text = (text or "").strip() or None
     if file is None and text is None:
         raise ApiError(422, "empty_list", "Type a list or attach a file.")
@@ -120,13 +127,16 @@ async def parse_list(
             message += f" ({type(exc).__name__}: {str(exc)[:300]})"
         raise ApiError(502, "parse_failed", message) from exc
 
-    shopping = ShoppingList(
-        items=[ShoppingItem(**i.model_dump()) for i in parsed.items],
-        detected_language=parsed.detected_language,
-    )
-    list_id = str(uuid.uuid4())
+    new_items = [ShoppingItem(**i.model_dump()) for i in parsed.items]
+    if existing is not None:
+        previous = ShoppingList.model_validate(existing)
+        source = existing["source_type"]
+        shopping = ShoppingList(items=[*previous.items, *new_items], detected_language=previous.detected_language)
+    else:
+        list_id = str(uuid.uuid4())
+        shopping = ShoppingList(items=new_items, detected_language=parsed.detected_language)
     repo.save_list(user.uid, list_id, {"source_type": source, **shopping.model_dump()})
-    log.info("Parsed list %s: %d items from %s", list_id, len(shopping.items), source)
+    log.info("Parsed list %s: +%d items from %s", list_id, len(new_items), source)
     return _response(list_id, source, shopping, repo)
 
 

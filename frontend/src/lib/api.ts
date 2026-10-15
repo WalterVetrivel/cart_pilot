@@ -71,7 +71,11 @@ export interface Candidate {
   qty: number
   line_price: number
   rating: number
+  rating_count: number
+  pack_size: number
+  pack_unit: string
   in_stock: boolean
+  brand_match: boolean
 }
 
 export interface ListResponse {
@@ -82,8 +86,15 @@ export interface ListResponse {
   matches: Record<string, Candidate[]>
 }
 
-export function parseList(input: { text?: string; file?: Blob; filename?: string }): Promise<ListResponse> {
+export function parseList(input: {
+  text?: string
+  file?: Blob
+  filename?: string
+  /** Append to this list instead of starting a new one. */
+  listId?: string
+}): Promise<ListResponse> {
   const form = new FormData()
+  if (input.listId) form.append('list_id', input.listId)
   if (input.text) form.append('text', input.text)
   if (input.file) form.append('file', input.file, input.filename ?? 'upload')
   return api<ListResponse>('/parse', { method: 'POST', body: form })

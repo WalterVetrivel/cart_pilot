@@ -429,3 +429,4 @@ _(Coding agents: append dated entries here when you make a choice the spec didn'
 - **2026-10-15 (M1):** Seed has 573 products (spec says ~600) with fixed per-item pack sizes across stores so prices compare like for like; every item is carried by at least 2 stores. Store ETAs in minutes: FreshMart 1440, QuickBasket 12, MegaBazaar 2880, Kirana Connect 45.
 - **2026-10-15 (M1):** Demo email 5 contains a prompt-injection line on purpose, to demo that VoucherExtractorAgent ignores instructions in emails.
 - **2026-10-15 (M1):** Without Firebase web config the frontend runs as a local guest (backend must set `AUTH_DISABLED=true`).
+- **2026-10-15 (M1):** Screens 2–3 are one responsive workspace (`/` and `/lists/:id`): list editor on the left, per-store results on the right; a List/Results toggle on phones. `POST /api/parse` takes an optional `list_id` to append new items to an existing list. "Find best deals" lands in the same results panel in M2.
