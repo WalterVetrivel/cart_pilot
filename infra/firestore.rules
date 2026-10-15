@@ -1,0 +1,21 @@
+rules_version = '2';
+// SPEC §10: users touch only their own subtree; catalogue is read-only to clients.
+// The backend uses the Admin SDK, which bypasses these rules.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{uid}/{document=**} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+    match /stores/{storeId} {
+      allow read: if request.auth != null;
+      allow write: if false;
+    }
+    match /products/{productId} {
+      allow read: if request.auth != null;
+      allow write: if false;
+    }
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

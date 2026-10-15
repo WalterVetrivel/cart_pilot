@@ -1,0 +1,12 @@
+# Runtime dependencies (pinned so local, CI and Cloud Run builds match).
+fastapi==0.141.1
+uvicorn[standard]==0.54.0
+pydantic-settings==2.16.0
+python-multipart==0.0.32
+firebase-admin==7.7.0
+google-cloud-firestore==2.34.1
+google-adk==2.12.0
+google-genai==2.31.0
+google-api-python-client==2.201.0
+python-docx==1.2.0
+rapidfuzz==3.14.6
