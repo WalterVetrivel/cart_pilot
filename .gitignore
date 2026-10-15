@@ -23,3 +23,7 @@ firestore-debug.log
 ui-debug.log
 
 .DS_Store
+
+# Contest paperwork kept next to the code
+*.PDF
+*.pdf
