@@ -45,3 +45,54 @@ export const getHealth = () => api<Health>('/health')
 
 export const formatINR = (value: number) =>
   new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(value)
+
+// --- Lists (SPEC §6.1, §8.1) -------------------------------------------------
+export const UNITS = ['kg', 'g', 'l', 'ml', 'pcs', 'pack'] as const
+export type Unit = (typeof UNITS)[number]
+
+export interface ShoppingItem {
+  id?: string
+  canonical_name: string
+  original_text: string
+  quantity: number
+  unit: Unit | null
+  brand_preference: string | null
+  category: string
+  notes: string | null
+  optional: boolean
+}
+
+export interface Candidate {
+  product_id: string
+  store_id: string
+  name: string
+  brand: string
+  price: number
+  qty: number
+  line_price: number
+  rating: number
+  in_stock: boolean
+}
+
+export interface ListResponse {
+  list_id: string
+  source_type: 'text' | 'image' | 'audio' | 'pdf' | 'docx'
+  detected_language: string
+  items: ShoppingItem[]
+  matches: Record<string, Candidate[]>
+}
+
+export function parseList(input: { text?: string; file?: Blob; filename?: string }): Promise<ListResponse> {
+  const form = new FormData()
+  if (input.text) form.append('text', input.text)
+  if (input.file) form.append('file', input.file, input.filename ?? 'upload')
+  return api<ListResponse>('/parse', { method: 'POST', body: form })
+}
+
+export const getList = (listId: string) => api<ListResponse>(`/lists/${listId}`)
+
+export const updateList = (listId: string, items: ShoppingItem[], detectedLanguage: string) =>
+  api<ListResponse>(`/lists/${listId}`, {
+    method: 'PUT',
+    body: JSON.stringify({ items, detected_language: detectedLanguage }),
+  })

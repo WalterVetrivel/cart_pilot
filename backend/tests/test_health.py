@@ -18,3 +18,20 @@ def test_auth_disabled_for_local_dev(client, monkeypatch):
     res = client.get("/api/me")
     assert res.status_code == 200
     assert res.json()["uid"] == "dev-user"
+
+
+def test_env_file_values_reach_google_libraries(monkeypatch, tmp_path):
+    import os
+
+    from app.config import get_settings
+
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / ".env").write_text("GOOGLE_API_KEY=from-dotenv\n")
+    monkeypatch.delenv("GOOGLE_API_KEY", raising=False)
+    get_settings.cache_clear()
+    try:
+        get_settings()
+        assert os.environ["GOOGLE_API_KEY"] == "from-dotenv"
+    finally:
+        monkeypatch.delenv("GOOGLE_API_KEY", raising=False)
+        get_settings.cache_clear()

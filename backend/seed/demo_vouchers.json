@@ -1,0 +1,67 @@
+[
+  {
+    "email_id": "demo-email-1",
+    "store_name_raw": "FreshMart",
+    "store_id": "freshmart",
+    "code": "FRESH10",
+    "discount_type": "percent",
+    "value": 10,
+    "max_discount": 100,
+    "min_spend": 499,
+    "expiry": "2026-12-31",
+    "applies_to_category": null,
+    "confidence": 0.95
+  },
+  {
+    "email_id": "demo-email-2",
+    "store_name_raw": "MegaBazaar",
+    "store_id": "megabazaar",
+    "code": "MEGA75",
+    "discount_type": "flat",
+    "value": 75,
+    "max_discount": null,
+    "min_spend": 599,
+    "expiry": "2026-11-30",
+    "applies_to_category": null,
+    "confidence": 0.92
+  },
+  {
+    "email_id": "demo-email-3",
+    "store_name_raw": "QuickBasket",
+    "store_id": "quickbasket",
+    "code": "QUICK50",
+    "discount_type": "flat",
+    "value": 50,
+    "max_discount": null,
+    "min_spend": 299,
+    "expiry": "2026-09-30",
+    "applies_to_category": null,
+    "confidence": 0.9
+  },
+  {
+    "email_id": "demo-email-4",
+    "store_name_raw": "SpiceRoute Foods",
+    "store_id": null,
+    "code": "SPICE20",
+    "discount_type": "percent",
+    "value": 20,
+    "max_discount": 150,
+    "min_spend": 300,
+    "expiry": "2026-12-15",
+    "applies_to_category": null,
+    "confidence": 0.85
+  },
+  {
+    "email_id": "demo-email-5",
+    "store_name_raw": "Kirana Connect",
+    "store_id": "kiranaconnect",
+    "code": "KIRANA30",
+    "discount_type": "flat",
+    "value": 30,
+    "max_discount": null,
+    "min_spend": 250,
+    "expiry": "2026-11-15",
+    "applies_to_category": "staples",
+    "confidence": 0.88
+  }
+]

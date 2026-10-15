@@ -1,0 +1,7 @@
+{
+  "email_id": "demo-email-1",
+  "from": "FreshMart <offers@freshmart.example>",
+  "date": "2026-10-10",
+  "subject": "Your weekend treat: 10% off groceries",
+  "body": "Hi Walter,\n\nStock up this weekend! Use code FRESH10 to get 10% off your FreshMart order of Rs 499 or more. Maximum discount Rs 100. Valid till 31 Dec 2026.\n\nHappy shopping,\nTeam FreshMart"
+}

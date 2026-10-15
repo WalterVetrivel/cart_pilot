@@ -1,0 +1,7 @@
+{
+  "email_id": "demo-email-6",
+  "from": "Bank Alerts <alerts@yourbank.example>",
+  "date": "2026-10-11",
+  "subject": "Your monthly statement is ready",
+  "body": "Your credit card statement for September is ready. Log in to net banking to view it. This email contains no offers."
+}
