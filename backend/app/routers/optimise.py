@@ -14,6 +14,7 @@ from app.models.schemas import CartPlan, RankedItem, ScoredCandidate, ShoppingLi
 from app.services.matching import match_list
 from app.services.optimiser import DEFAULT_EXTRA_DELIVERY_PENALTY, optimise
 from app.services.ranking import rank_candidates
+from app.services.vouchers import today
 
 router = APIRouter(tags=["deals"])
 log = logging.getLogger(__name__)
@@ -68,7 +69,7 @@ async def optimise_cart(
 ) -> OptimiseResponse:
     shopping, stores, ranked = _ranked(user.uid, body.list_id, body.weights, repo)
     vouchers = [Voucher.model_validate(v) for v in repo.vouchers(user.uid)]
-    result = optimise(shopping.items, ranked, list(stores.values()), vouchers, body.extra_delivery_penalty)
+    result = optimise(shopping.items, ranked, list(stores.values()), vouchers, body.extra_delivery_penalty, today())
     if not result.plans:
         raise ApiError(
             422,

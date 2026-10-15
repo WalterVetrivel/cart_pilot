@@ -60,7 +60,7 @@ def _best_voucher(
             continue
         d = voucher_discount(v, lines, today)
         if d > 0 and (best is None or d > best.discount):
-            best = AppliedVoucher(code=v.code, discount=d, email_id=v.email_id)
+            best = AppliedVoucher(code=v.code, discount=d, email_id=v.email_id, voucher_id=v.id or None)
     return best
 
 
