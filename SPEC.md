@@ -424,3 +424,9 @@ _(Coding agents: append dated entries here when you make a choice the spec didn'
 - **2026-10-15 (M0):** Added `GET /api/me` (auth echo) and an `AUTH_DISABLED` env flag so the backend can run locally without Firebase. Never set it on Cloud Run.
 - **2026-10-15 (M0):** Added `optional: bool` to `ShoppingItem` to support "mark optional" (§8.3 step 2, §11 screen 3).
 - **2026-10-15 (M0):** CI/CD on GitHub Actions: `ci.yml` (ruff, pytest, lint, build) and `deploy.yml` (Cloud Run via `--source` + Firebase Hosting, keyless Workload Identity Federation).
+- **2026-10-15 (M1):** Datastore switch `DATASTORE=auto|memory|firestore`. `auto` uses Firestore on Cloud Run or when `FIRESTORE_EMULATOR_HOST` is set, otherwise the seed catalogue in memory, so local dev needs only a Gemini key.
+- **2026-10-15 (M1):** Added `GET /api/lists/{id}` and `PUT /api/lists/{id}` so screen 3 edits persist and survive a refresh. Edited lists are re-matched on save.
+- **2026-10-15 (M1):** Seed has 573 products (spec says ~600) with fixed per-item pack sizes across stores so prices compare like for like; every item is carried by at least 2 stores. Store ETAs in minutes: FreshMart 1440, QuickBasket 12, MegaBazaar 2880, Kirana Connect 45.
+- **2026-10-15 (M1):** Demo email 5 contains a prompt-injection line on purpose, to demo that VoucherExtractorAgent ignores instructions in emails.
+- **2026-10-15 (M1):** Without Firebase web config the frontend runs as a local guest (backend must set `AUTH_DISABLED=true`).
+- **2026-10-15 (M1):** Screens 2–3 are one responsive workspace (`/` and `/lists/:id`): list editor on the left, per-store results on the right; a List/Results toggle on phones. `POST /api/parse` takes an optional `list_id` to append new items to an existing list. "Find best deals" lands in the same results panel in M2.

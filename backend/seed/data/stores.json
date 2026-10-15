@@ -1,0 +1,50 @@
+[
+  {
+    "store_id": "freshmart",
+    "name": "FreshMart",
+    "type": "Supermarket",
+    "delivery_fee": 40,
+    "free_delivery_at": 600,
+    "min_order": 200,
+    "small_cart_fee": 0,
+    "small_cart_below": 0,
+    "eta_label": "Next day slots",
+    "eta_minutes": 1440
+  },
+  {
+    "store_id": "quickbasket",
+    "name": "QuickBasket",
+    "type": "10-minute delivery",
+    "delivery_fee": 25,
+    "free_delivery_at": 399,
+    "min_order": 99,
+    "small_cart_fee": 15,
+    "small_cart_below": 199,
+    "eta_label": "12 min",
+    "eta_minutes": 12
+  },
+  {
+    "store_id": "megabazaar",
+    "name": "MegaBazaar",
+    "type": "Online marketplace",
+    "delivery_fee": 49,
+    "free_delivery_at": 499,
+    "min_order": 0,
+    "small_cart_fee": 0,
+    "small_cart_below": 0,
+    "eta_label": "2 days",
+    "eta_minutes": 2880
+  },
+  {
+    "store_id": "kiranaconnect",
+    "name": "Kirana Connect",
+    "type": "Local stores network",
+    "delivery_fee": 20,
+    "free_delivery_at": 300,
+    "min_order": 150,
+    "small_cart_fee": 0,
+    "small_cart_below": 0,
+    "eta_label": "45 min",
+    "eta_minutes": 45
+  }
+]

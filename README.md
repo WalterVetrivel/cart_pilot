@@ -19,15 +19,27 @@ Prerequisites: Python 3.12, Node 22.
 cd backend
 python3.12 -m venv .venv && source .venv/bin/activate
 pip install -r requirements-dev.txt
-cp .env.example .env               # add GOOGLE_API_KEY from AI Studio; AUTH_DISABLED=true to skip sign-in checks
+cp .env.example .env               # add GOOGLE_API_KEY from https://aistudio.google.com/apikey
 uvicorn app.main:app --reload --port 8080
 
 # Frontend → http://localhost:5173 (proxies /api to :8080)
 cd frontend
 npm install
-cp .env.example .env.local         # Firebase web app config
+cp .env.example .env.local         # Firebase web app config (optional: without it you're a local guest)
 npm run dev
 ```
+
+By default the backend serves the seeded catalogue from memory, so nothing but the Gemini API is needed.
+
+### Optional: Firestore emulator (needs Java 11+)
+
+```bash
+cd infra && npx firebase-tools@15 emulators:start --only firestore      # UI at http://localhost:4000
+# in backend/.env: FIRESTORE_EMULATOR_HOST=127.0.0.1:8081, then once:
+cd backend && python -m seed.load
+```
+
+Seed data is generated deterministically by `python -m seed.generate_seed` (writes `backend/seed/data/`).
 
 Checks (same as CI):
 
@@ -43,7 +55,7 @@ See [infra/deploy.md](infra/deploy.md) for manual commands and the one-time setu
 ## Status
 
 - [x] M0 Skeleton: `/api/health`, Google sign-in, Hosting rewrite, CI/CD
-- [ ] M1 Seed + parsing
+- [x] M1 Seed + parsing
 - [ ] M2 Ranking + optimiser
 - [ ] M3 Vouchers + checkout
 - [ ] M4 Deploy

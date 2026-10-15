@@ -17,6 +17,25 @@ def _uuid() -> str:
 
 
 # --- §6.1 ListParserAgent ---------------------------------------------------
+class ParsedItem(BaseModel):
+    """What the model returns for one line; the API adds id/optional."""
+
+    canonical_name: str
+    original_text: str
+    quantity: float = 1
+    unit: Unit | None = None
+    brand_preference: str | None = None
+    category: Category = "other"
+    notes: str | None = None
+
+
+class ParsedList(BaseModel):
+    """Structured output schema for ListParserAgent."""
+
+    items: list[ParsedItem]
+    detected_language: Literal["en", "ta", "hi", "mixed", "other"] = "en"
+
+
 class ShoppingItem(BaseModel):
     id: str = Field(default_factory=_uuid)
     canonical_name: str
@@ -32,6 +51,33 @@ class ShoppingItem(BaseModel):
 class ShoppingList(BaseModel):
     items: list[ShoppingItem]
     detected_language: Literal["en", "ta", "hi", "mixed", "other"] = "en"
+
+
+SourceType = Literal["text", "image", "audio", "pdf", "docx"]
+
+
+class Candidate(BaseModel):
+    """A catalogue product that can satisfy a list item (SPEC §8.1)."""
+
+    product_id: str
+    store_id: StoreId
+    name: str
+    brand: str
+    pack_size: float
+    pack_unit: str
+    price: float
+    qty: int
+    line_price: float
+    rating: float
+    rating_count: int
+    in_stock: bool
+    brand_match: bool = False
+
+
+class ListResponse(ShoppingList):
+    list_id: str
+    source_type: SourceType
+    matches: dict[str, list[Candidate]]
 
 
 # --- §6.2 VoucherExtractorAgent ---------------------------------------------

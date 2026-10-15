@@ -32,12 +32,6 @@ export function SignIn() {
       >
         {busy ? 'Signing in…' : 'Sign in with Google'}
       </button>
-      {!firebaseConfigured && (
-        <p className="text-sm text-amber-700">
-          Firebase is not configured yet. Copy <code>frontend/.env.example</code> to <code>.env.local</code> and fill in
-          your web app config.
-        </p>
-      )}
       {error && <p className="text-sm text-red-700">{error}</p>}
     </div>
   )
