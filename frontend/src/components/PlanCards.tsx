@@ -10,7 +10,7 @@ const TITLES: Record<CartPlan['label'], string> = {
 
 const storeKey = (p: CartPlan) => p.stores.map((s) => s.store_id).join('+')
 
-export function PlanCards({ plans }: { plans: CartPlan[] }) {
+export function PlanCards({ plans, onChoose }: { plans: CartPlan[]; onChoose?: (plan: CartPlan) => void }) {
   // When the best plan already uses one store, the "One store" card would repeat it.
   const best = plans.find((p) => p.label === 'best')
   const shown = plans.filter(
@@ -19,13 +19,13 @@ export function PlanCards({ plans }: { plans: CartPlan[] }) {
   return (
     <div className="grid gap-3 2xl:grid-cols-3">
       {shown.map((plan) => (
-        <PlanCard key={plan.plan_id} plan={plan} />
+        <PlanCard key={plan.plan_id} plan={plan} onChoose={onChoose} />
       ))}
     </div>
   )
 }
 
-function PlanCard({ plan }: { plan: CartPlan }) {
+function PlanCard({ plan, onChoose }: { plan: CartPlan; onChoose?: (plan: CartPlan) => void }) {
   const [open, setOpen] = useState(plan.label === 'best')
   const best = plan.label === 'best'
   const slowest = plan.stores.reduce((a, b) => (b.eta_minutes > a.eta_minutes ? b : a))
@@ -103,8 +103,9 @@ function PlanCard({ plan }: { plan: CartPlan }) {
       )}
 
       <button
-        disabled
-        title="Approval and sandbox checkout arrive in M3"
+        onClick={() => onChoose?.(plan)}
+        disabled={!onChoose}
+        title={onChoose ? undefined : 'Update the plan first'}
         className={`mt-4 w-full rounded-lg px-4 py-2 text-sm font-semibold ${best ? 'bg-brand-600 text-white' : 'border border-stone-300'} disabled:opacity-50`}
       >
         Choose this plan

@@ -2,6 +2,7 @@ import { Link, Navigate, Route, Routes } from 'react-router-dom'
 import { HealthBadge } from './components/HealthBadge'
 import { useAuth } from './lib/auth-context'
 import { firebaseConfigured } from './lib/firebase'
+import { Orders } from './pages/Orders'
 import { SignIn } from './pages/SignIn'
 import { WorkspaceRoute } from './pages/Workspace'
 
@@ -13,13 +14,18 @@ export default function App() {
   return (
     <div className="min-h-dvh">
       <header className="flex items-center justify-between gap-3 border-b border-stone-200 bg-white px-4 py-3">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 sm:gap-4">
           <Link to="/" className="font-bold text-brand-600">
             CartPilot
           </Link>
           {signedIn && (
             <Link to="/" className="whitespace-nowrap rounded-lg px-2 py-1 text-sm text-stone-600 hover:bg-stone-100 hover:text-stone-900">
               + New list
+            </Link>
+          )}
+          {signedIn && (
+            <Link to="/orders" className="whitespace-nowrap rounded-lg px-2 py-1 text-sm text-stone-600 hover:bg-stone-100 hover:text-stone-900">
+              Orders
             </Link>
           )}
         </div>
@@ -46,6 +52,7 @@ export default function App() {
           <Routes>
             <Route path="/" element={<WorkspaceRoute />} />
             <Route path="/lists/:listId" element={<WorkspaceRoute />} />
+            <Route path="/orders" element={<Orders />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         )}

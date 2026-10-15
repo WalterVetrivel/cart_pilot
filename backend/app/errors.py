@@ -28,4 +28,9 @@ def register_error_handlers(app: FastAPI) -> None:
 
     @app.exception_handler(RequestValidationError)
     async def _validation_error(_: Request, exc: RequestValidationError):
-        return JSONResponse(_body("validation_error", str(exc.errors())), status_code=422)
+        # Field names and reasons only: echoing submitted values could leak tokens back out.
+        problems = "; ".join(
+            f"{'.'.join(str(p) for p in e.get('loc', ()) if p != 'body') or 'body'}: {e.get('msg', 'invalid')}"
+            for e in exc.errors()
+        )
+        return JSONResponse(_body("validation_error", problems or "Invalid request."), status_code=422)

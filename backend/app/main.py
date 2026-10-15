@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import get_settings
 from app.errors import register_error_handlers
-from app.routers import health, optimise, parse
+from app.routers import health, optimise, orders, parse, vouchers
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s %(message)s")
 
@@ -24,10 +24,12 @@ def create_app() -> FastAPI:
     )
     register_error_handlers(app)
 
-    # Later milestones add: vouchers, orders, chat, live.
+    # Later milestones add: chat, live.
     app.include_router(health.router, prefix="/api")
     app.include_router(parse.router, prefix="/api")
     app.include_router(optimise.router, prefix="/api")
+    app.include_router(vouchers.router, prefix="/api")
+    app.include_router(orders.router, prefix="/api")
     return app
 
 

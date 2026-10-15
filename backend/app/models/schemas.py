@@ -122,7 +122,9 @@ class ListResponse(ShoppingList):
 
 
 # --- §6.2 VoucherExtractorAgent ---------------------------------------------
-class Voucher(BaseModel):
+class ExtractedVoucher(BaseModel):
+    """VoucherExtractorAgent output for one offer (SPEC §6.2)."""
+
     email_id: str
     store_name_raw: str
     store_id: StoreId | None = None
@@ -134,11 +136,35 @@ class Voucher(BaseModel):
     expiry: str | None = None  # YYYY-MM-DD
     applies_to_category: str | None = None
     confidence: float = 0.0
-    status: Literal["active", "used"] = "active"
 
 
 class VoucherList(BaseModel):
-    vouchers: list[Voucher]
+    vouchers: list[ExtractedVoucher]
+
+
+VoucherSource = Literal["gmail", "demo"]
+
+
+class Voucher(ExtractedVoucher):
+    """A voucher saved for a user."""
+
+    id: str = ""
+    source: VoucherSource = "demo"
+    status: Literal["active", "used"] = "active"
+
+
+class IgnoredVoucher(BaseModel):
+    store_name_raw: str
+    code: str | None = None
+    reason: str
+
+
+class VoucherScanResult(BaseModel):
+    source: VoucherSource
+    emails_scanned: int
+    extracted_by: Literal["gemini", "seed"]
+    vouchers: list[Voucher]  # everything the user now has, newest source included
+    ignored: list[IgnoredVoucher]
 
 
 # --- §6.3 ExplainerAgent ----------------------------------------------------
@@ -161,6 +187,7 @@ class AppliedVoucher(BaseModel):
     code: str | None
     discount: float
     email_id: str | None = None
+    voucher_id: str | None = None
 
 
 class StorePlan(BaseModel):
@@ -196,3 +223,20 @@ class WebOffer(BaseModel):
 
 class WebOffers(BaseModel):
     offers: list[WebOffer]
+
+
+# --- §8.4 Checkout simulator ------------------------------------------------
+class Order(BaseModel):
+    order_id: str
+    plan_id: str
+    list_id: str | None = None
+    store_id: StoreId
+    lines: list[PlanLine]
+    subtotal: float
+    delivery_fee: float
+    voucher: AppliedVoucher | None = None
+    total: float
+    eta: str
+    payment_id: str
+    status: Literal["placed"] = "placed"
+    created_at: str
