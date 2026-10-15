@@ -3,7 +3,18 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { ListEditor } from '../components/ListEditor'
 import { ListInput } from '../components/ListInput'
 import { Results } from '../components/Results'
-import { getList, updateList, type ListResponse, type ShoppingItem } from '../lib/api'
+import {
+  getList,
+  optimiseList,
+  PRESETS,
+  rankList,
+  updateList,
+  type CartPlan,
+  type ListResponse,
+  type RankedItem,
+  type ShoppingItem,
+  type Weights,
+} from '../lib/api'
 import { blankItem, itemDomId } from '../lib/listItems'
 
 type MobileView = 'list' | 'results'
@@ -26,13 +37,61 @@ function Workspace({ listId }: { listId?: string }) {
   const [showInput, setShowInput] = useState(false)
   const [focusedId, setFocusedId] = useState<string | null>(null)
   const [mobileView, setMobileView] = useState<MobileView>('results')
+  const [weights, setWeights] = useState<Weights>(PRESETS.balanced)
+  const [penalty, setPenalty] = useState(30)
+  const [ranked, setRanked] = useState<RankedItem[] | null>(null)
+  const [plans, setPlans] = useState<CartPlan[] | null>(null)
+  const [plansStale, setPlansStale] = useState(false)
+  const [planning, setPlanning] = useState(false)
+  const [planError, setPlanError] = useState<string | null>(null)
 
   const load = useCallback((res: ListResponse) => {
     setData(res)
     setItems(res.items)
     setDirty(false)
     setFocusedId(null)
+    setPlansStale(true)
+    setPlanError(null)
   }, [])
+
+  // Re-rank whenever the saved list or the weights change (debounced for slider drags).
+  useEffect(() => {
+    if (!data) return
+    let cancelled = false
+    const timer = window.setTimeout(() => {
+      rankList(data.list_id, weights)
+        .then((res) => !cancelled && setRanked(res.items))
+        .catch((e: Error) => !cancelled && setError(e.message))
+    }, 200)
+    return () => {
+      cancelled = true
+      window.clearTimeout(timer)
+    }
+  }, [data, weights])
+
+  const changeWeights = (w: Weights) => {
+    setWeights(w)
+    setPlansStale(true)
+  }
+  const changePenalty = (p: number) => {
+    setPenalty(p)
+    setPlansStale(true)
+  }
+
+  const findDeals = async () => {
+    if (!data) return
+    setPlanning(true)
+    setPlanError(null)
+    try {
+      const res = await optimiseList(data.list_id, weights, penalty)
+      setPlans(res.plans)
+      setPlansStale(false)
+    } catch (e) {
+      setPlanError((e as Error).message)
+    } finally {
+      setPlanning(false)
+    }
+  }
 
   useEffect(() => {
     if (!listId) return
@@ -176,13 +235,22 @@ function Workspace({ listId }: { listId?: string }) {
 
         {/* Right: results */}
         <section className={`${mobileView === 'results' ? 'block' : 'hidden'} lg:block`}>
-          <Results data={data} stale={dirty} onEdit={focusItem} onRemove={removeItem} />
-          <div className="mt-6 rounded-xl border border-dashed border-stone-300 p-4 text-center text-sm text-stone-500">
-            <button disabled className="rounded-lg bg-stone-300 px-4 py-2 font-semibold text-white">
-              Find best deals
-            </button>
-            <p className="mt-2">Ranking, vouchers and the cheapest cart plan arrive in M2.</p>
-          </div>
+          <Results
+            data={data}
+            ranked={ranked}
+            stale={dirty}
+            plans={plans}
+            plansStale={plansStale}
+            planning={planning}
+            planError={planError}
+            onFindDeals={findDeals}
+            weights={weights}
+            onWeights={changeWeights}
+            penalty={penalty}
+            onPenalty={changePenalty}
+            onEdit={focusItem}
+            onRemove={removeItem}
+          />
         </section>
       </div>
     </div>

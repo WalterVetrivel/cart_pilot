@@ -107,3 +107,61 @@ export const updateList = (listId: string, items: ShoppingItem[], detectedLangua
     method: 'PUT',
     body: JSON.stringify({ items, detected_language: detectedLanguage }),
   })
+
+// --- Ranking and cart plans (SPEC §8.2, §8.3) --------------------------------
+export interface Weights {
+  price: number
+  rating: number
+  delivery: number
+  availability: number
+}
+
+export type Preset = 'cheapest' | 'balanced' | 'fastest'
+
+export const PRESETS: Record<Preset, Weights> = {
+  cheapest: { price: 0.75, rating: 0.1, delivery: 0.05, availability: 0.1 },
+  balanced: { price: 0.45, rating: 0.25, delivery: 0.2, availability: 0.1 },
+  fastest: { price: 0.2, rating: 0.15, delivery: 0.55, availability: 0.1 },
+}
+
+export interface ScoredCandidate extends Candidate {
+  score: number
+  eta_minutes: number
+  eta_label: string
+}
+
+export interface RankedItem {
+  item_id: string
+  candidates: ScoredCandidate[]
+}
+
+export interface StorePlan {
+  store_id: string
+  lines: { item_id: string; item_name: string; product_id: string; name: string; qty: number; line_price: number }[]
+  subtotal: number
+  delivery_fee: number
+  voucher: { code: string | null; discount: number } | null
+  total: number
+  eta: string
+  eta_minutes: number
+}
+
+export interface CartPlan {
+  plan_id: string
+  label: 'best' | 'single_store' | 'fastest'
+  stores: StorePlan[]
+  grand_total: number
+  effective_total: number
+  savings_vs_single_store: number
+  unavailable_items: string[]
+  explanation: { headline: string; bullets: string[] }
+}
+
+export const rankList = (listId: string, weights: Weights) =>
+  api<{ items: RankedItem[] }>('/rank', { method: 'POST', body: JSON.stringify({ list_id: listId, weights }) })
+
+export const optimiseList = (listId: string, weights: Weights, extraDeliveryPenalty: number) =>
+  api<{ plans: CartPlan[]; unavailable_items: string[] }>('/optimise', {
+    method: 'POST',
+    body: JSON.stringify({ list_id: listId, weights, extra_delivery_penalty: extraDeliveryPenalty }),
+  })

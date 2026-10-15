@@ -53,3 +53,16 @@ def test_brand_preference_is_flagged():
 
 def test_unknown_item_has_no_candidates():
     assert match_item(ShoppingItem(canonical_name="caviar", original_text="caviar"), PRODUCTS, NAMES) == []
+
+
+def test_oversized_packs_are_dropped_per_store():
+    one_kg = ShoppingItem(canonical_name="sugar", original_text="sugar 1 kg", quantity=1, unit="kg")
+    cands = match_item(one_kg, PRODUCTS, NAMES)
+    assert cands and all(c.pack_size * c.qty == 1 for c in cands), "no 5 kg packs for a 1 kg request"
+
+    five_kg = ShoppingItem(canonical_name="sugar", original_text="sugar 5 kg", quantity=5, unit="kg")
+    sizes = {(c.qty, c.pack_size) for c in match_item(five_kg, PRODUCTS, NAMES)}
+    assert (1, 5) in sizes and (5, 1) in sizes, "both ways of buying exactly 5 kg are kept"
+
+    no_unit = ShoppingItem(canonical_name="sugar", original_text="sugar")
+    assert {c.pack_size for c in match_item(no_unit, PRODUCTS, NAMES)} == {1, 5}

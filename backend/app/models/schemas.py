@@ -74,6 +74,47 @@ class Candidate(BaseModel):
     brand_match: bool = False
 
 
+class Weights(BaseModel):
+    """Ranking weights (SPEC §8.2). Always renormalised to sum to 1."""
+
+    price: float = Field(0.45, ge=0)
+    rating: float = Field(0.25, ge=0)
+    delivery: float = Field(0.20, ge=0)
+    availability: float = Field(0.10, ge=0)
+
+    def normalised(self) -> "Weights":
+        total = self.price + self.rating + self.delivery + self.availability
+        if total <= 0:
+            return Weights()
+        return Weights(
+            price=self.price / total,
+            rating=self.rating / total,
+            delivery=self.delivery / total,
+            availability=self.availability / total,
+        )
+
+
+PRESETS: dict[str, Weights] = {
+    "cheapest": Weights(price=0.75, rating=0.10, delivery=0.05, availability=0.10),
+    "balanced": Weights(),
+    "fastest": Weights(price=0.20, rating=0.15, delivery=0.55, availability=0.10),
+}
+
+
+class ScoredCandidate(Candidate):
+    score: float
+    price_score: float
+    rating_score: float
+    delivery_score: float
+    eta_minutes: int
+    eta_label: str
+
+
+class RankedItem(BaseModel):
+    item_id: str
+    candidates: list[ScoredCandidate]
+
+
 class ListResponse(ShoppingList):
     list_id: str
     source_type: SourceType
@@ -93,6 +134,7 @@ class Voucher(BaseModel):
     expiry: str | None = None  # YYYY-MM-DD
     applies_to_category: str | None = None
     confidence: float = 0.0
+    status: Literal["active", "used"] = "active"
 
 
 class VoucherList(BaseModel):
@@ -108,6 +150,7 @@ class Explanation(BaseModel):
 # --- §8.3 CartPlan ----------------------------------------------------------
 class PlanLine(BaseModel):
     item_id: str
+    item_name: str = ""
     product_id: str
     name: str
     qty: int
@@ -117,6 +160,7 @@ class PlanLine(BaseModel):
 class AppliedVoucher(BaseModel):
     code: str | None
     discount: float
+    email_id: str | None = None
 
 
 class StorePlan(BaseModel):
@@ -127,6 +171,7 @@ class StorePlan(BaseModel):
     voucher: AppliedVoucher | None = None
     total: float
     eta: str
+    eta_minutes: int = 0
 
 
 class CartPlan(BaseModel):
@@ -134,6 +179,7 @@ class CartPlan(BaseModel):
     label: Literal["best", "single_store", "fastest"]
     stores: list[StorePlan]
     grand_total: float
+    effective_total: float = 0  # grand_total + extra-delivery penalty; what the optimiser minimises
     savings_vs_single_store: float = 0
     unavailable_items: list[str] = Field(default_factory=list)
     explanation: Explanation = Field(default_factory=Explanation)

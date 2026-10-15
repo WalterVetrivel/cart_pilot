@@ -1,11 +1,12 @@
 import pytest
 from fastapi.testclient import TestClient
 
+from app.agents.explainer import get_explainer
 from app.agents.list_parser import get_list_parser
 from app.config import get_settings
 from app.db import get_repository
 from app.main import create_app
-from app.models.schemas import ParsedItem, ParsedList
+from app.models.schemas import Explanation, ParsedItem, ParsedList
 
 
 class FakeParser:
@@ -31,13 +32,27 @@ class FakeParser:
         return self.result
 
 
+class FakeExplainer:
+    def __init__(self) -> None:
+        self.calls: list[dict] = []
+
+    async def explain(self, plans, stores, language):
+        self.calls.append({"plans": plans, "language": language})
+        return Explanation(headline="Fake headline", bullets=["fake"])
+
+
+@pytest.fixture
+def fake_explainer():
+    return FakeExplainer()
+
+
 @pytest.fixture
 def fake_parser():
     return FakeParser()
 
 
 @pytest.fixture
-def client(monkeypatch, fake_parser):
+def client(monkeypatch, fake_parser, fake_explainer):
     monkeypatch.setenv("GEMINI_MODEL", "test-model")
     monkeypatch.setenv("DATASTORE", "memory")
     monkeypatch.delenv("AUTH_DISABLED", raising=False)
@@ -45,6 +60,7 @@ def client(monkeypatch, fake_parser):
     get_repository.cache_clear()
     app = create_app()
     app.dependency_overrides[get_list_parser] = lambda: fake_parser
+    app.dependency_overrides[get_explainer] = lambda: fake_explainer
     yield TestClient(app)
     get_settings.cache_clear()
     get_repository.cache_clear()
