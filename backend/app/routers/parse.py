@@ -115,7 +115,10 @@ async def parse_list(
         raise
     except Exception as exc:
         log.exception("List parsing failed (source=%s)", source)
-        raise ApiError(502, "parse_failed", "Couldn't read that list. Please try again.") from exc
+        message = "Couldn't read that list. Please try again."
+        if settings.auth_disabled:  # local dev: show the cause in the UI
+            message += f" ({type(exc).__name__}: {str(exc)[:300]})"
+        raise ApiError(502, "parse_failed", message) from exc
 
     shopping = ShoppingList(
         items=[ShoppingItem(**i.model_dump()) for i in parsed.items],

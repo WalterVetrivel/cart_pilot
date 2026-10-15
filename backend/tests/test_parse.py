@@ -88,6 +88,7 @@ def test_parser_failure_is_a_clean_502(dev_client, fake_parser):
     res = dev_client.post("/api/parse", data={"text": "milk"})
     assert res.status_code == 502
     assert res.json()["error"]["code"] == "parse_failed"
+    assert "RuntimeError: model down" in res.json()["error"]["message"]
 
 
 def test_get_and_update_list(dev_client):
