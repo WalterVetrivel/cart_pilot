@@ -56,7 +56,7 @@ See [infra/deploy.md](infra/deploy.md) for manual commands and the one-time setu
 
 - [x] M0 Skeleton: `/api/health`, Google sign-in, Hosting rewrite, CI/CD
 - [x] M1 Seed + parsing
-- [ ] M2 Ranking + optimiser
+- [x] M2 Ranking + optimiser
 - [ ] M3 Vouchers + checkout
 - [ ] M4 Deploy
 - [ ] M5 Live prices + chat

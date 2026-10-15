@@ -17,6 +17,9 @@ class Repository(Protocol):
     def products(self) -> list[dict]: ...
     def save_list(self, uid: str, list_id: str, data: dict) -> None: ...
     def get_list(self, uid: str, list_id: str) -> dict | None: ...
+    def vouchers(self, uid: str) -> list[dict]: ...
+    def save_plan(self, uid: str, plan_id: str, data: dict) -> None: ...
+    def get_plan(self, uid: str, plan_id: str) -> dict | None: ...
 
 
 def _now() -> str:
@@ -29,6 +32,8 @@ class MemoryRepository:
 
         self._stores, self._products = generate()
         self._lists: dict[tuple[str, str], dict] = {}
+        self._vouchers: dict[str, list[dict]] = {}
+        self._plans: dict[tuple[str, str], dict] = {}
 
     def stores(self) -> list[dict]:
         return self._stores
@@ -42,6 +47,15 @@ class MemoryRepository:
 
     def get_list(self, uid: str, list_id: str) -> dict | None:
         return self._lists.get((uid, list_id))
+
+    def vouchers(self, uid: str) -> list[dict]:
+        return list(self._vouchers.get(uid, []))
+
+    def save_plan(self, uid: str, plan_id: str, data: dict) -> None:
+        self._plans[(uid, plan_id)] = {"created_at": _now(), **data}
+
+    def get_plan(self, uid: str, plan_id: str) -> dict | None:
+        return self._plans.get((uid, plan_id))
 
 
 class FirestoreRepository:
@@ -76,6 +90,19 @@ class FirestoreRepository:
 
     def get_list(self, uid: str, list_id: str) -> dict | None:
         snap = self._list_ref(uid, list_id).get()
+        return snap.to_dict() if snap.exists else None
+
+    def _user(self, uid: str):
+        return self._db.collection("users").document(uid)
+
+    def vouchers(self, uid: str) -> list[dict]:
+        return [d.to_dict() for d in self._user(uid).collection("vouchers").stream()]
+
+    def save_plan(self, uid: str, plan_id: str, data: dict) -> None:
+        self._user(uid).collection("plans").document(plan_id).set({"created_at": _now(), **data})
+
+    def get_plan(self, uid: str, plan_id: str) -> dict | None:
+        snap = self._user(uid).collection("plans").document(plan_id).get()
         return snap.to_dict() if snap.exists else None
 
 

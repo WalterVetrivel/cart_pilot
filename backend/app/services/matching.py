@@ -34,6 +34,33 @@ def packs_needed(quantity: float, unit: str | None, pack_size: float, pack_unit:
     return max(1, math.ceil(quantity))
 
 
+def covered_amount(qty: int, unit: str | None, pack_size: float, pack_unit: str) -> float | None:
+    """Total amount bought in base units, or None when the request has no comparable unit."""
+    req, have = _TO_BASE.get(unit or ""), _TO_BASE.get(pack_unit)
+    if req and have and req[0] == have[0]:
+        return qty * pack_size * have[1]
+    return None
+
+
+def _drop_oversized(item: ShoppingItem, candidates: list[Candidate]) -> list[Candidate]:
+    """Per store, keep the variants that buy the least extra (1 kg asked: skip the 5 kg pack).
+
+    Brand matches are always kept, and nothing is dropped when the request has no unit.
+    """
+    best: dict[str, float] = {}
+    amounts: dict[str, float | None] = {}
+    for c in candidates:
+        amount = covered_amount(c.qty, item.unit, c.pack_size, c.pack_unit)
+        amounts[c.product_id] = amount
+        if amount is not None:
+            best[c.store_id] = min(best.get(c.store_id, amount), amount)
+    return [
+        c
+        for c in candidates
+        if c.brand_match or amounts[c.product_id] is None or amounts[c.product_id] <= best[c.store_id] * 1.001
+    ]
+
+
 def match_item(item: ShoppingItem, products: list[dict], canonical_names: list[str]) -> list[Candidate]:
     canonical = resolve_item(item.canonical_name, canonical_names)
     if canonical is None:
@@ -62,6 +89,7 @@ def match_item(item: ShoppingItem, products: list[dict], canonical_names: list[s
                 brand_match=bool(brand) and brand in p["brand"].lower(),
             )
         )
+    candidates = _drop_oversized(item, candidates)
     candidates.sort(key=lambda c: (not c.in_stock, not c.brand_match, c.line_price))
     return candidates
 
