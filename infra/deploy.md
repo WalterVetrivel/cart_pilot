@@ -5,6 +5,10 @@ rewrites `/api/**` to the Cloud Run service so the browser only ever talks to on
 
 ## One-time Google Cloud setup
 
+**Shortcut:** in Google Cloud Shell, run `npx firebase-tools@15 login --no-localhost`, then
+`PROJECT=<project-id> REPO=WalterVetrivel/cart_pilot bash infra/setup-gcp.sh`. It does everything in this
+section and the keyless-deploy section, and prints the values for GitHub. The manual commands below are the same steps.
+
 ```bash
 export PROJECT=cartpilot-demo          # your project id
 gcloud config set project $PROJECT
